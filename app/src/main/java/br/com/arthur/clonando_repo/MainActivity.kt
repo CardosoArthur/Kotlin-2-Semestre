@@ -3,12 +3,16 @@ package br.com.arthur.clonando_repo
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var viewModel: ItemsViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -19,7 +23,9 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.title = "Lista de Compras"
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        val itemsAdapter = ItemsAdapter()
+        val itemsAdapter = ItemsAdapter { item ->
+            viewModel.removeItem(item)
+        }
         recyclerView.adapter = itemsAdapter
 
 
@@ -33,17 +39,16 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val item = ItemModel(
-                name = editText.text.toString(),
-                onRemove = {
-                    itemsAdapter.removeItem(it)
-                }
-            )
-
-            itemsAdapter.addItem(item)
+            viewModel.addItem(editText.text.toString())
             editText.text.clear()
+        }
+        val viewModelFactory = ItemsViewModelFactory(application)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(ItemsViewModel::class.java)
+
+        viewModel.itemsLiveData.observe(this) { items ->
+            itemsAdapter.updateItems(items)
+
         }
     }
 }
-
-//comecar a copiar o commit "Implementando Javadoc"
+//continuar a copiar o commit Refatorando ItemsAdapter, ItemsViewModel e MainActivity
